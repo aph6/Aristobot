@@ -1,0 +1,16 @@
+To get started simply type ``!register`` to register yourself as a player in the league.
+
+You will be assigned a default rating of 0 to begin with. To see more information about yourself or other members just type ``!user [member]``.  This will show you 4 numbers:
+1. Your rank in the league which is based on your rating
+2. Your rating which is calculated from your skill and uncertainty level
+3. Your skill which is based on the games you win and lose
+4. Your uncertainty which is based on how many games you've played (lower is better)
+
+You can report match results with the commands ``!report1v1`` for a simple 1v1 or ``!matchreport`` which will let you report ANY type of match (2v2, 3v3, 5v2, 1v6...etc.).
+View the league table with ``!leaderboard`` or ``!lb``.
+
+Anyone can report matches so this system is very much based on trust.
+
+Type ``!help`` for a full list of commands
+
+For nerds who want to learn more about the math behind TrueSkill: http://www.moserware.com/2010/03/computing-your-skill.html
