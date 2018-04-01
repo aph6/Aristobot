@@ -9,6 +9,7 @@ import time
 import datetime
 import csv
 import logging
+import os
 
 description = '''A Discord bot by Aristoza that utilizes the TrueSkill Ranking System: 
 https://www.microsoft.com/en-us/research/project/trueskill-ranking-system/ '''
@@ -374,4 +375,4 @@ async def on_ready():
 
 bot.add_cog(Commands())
 bot.add_cog(Admin())
-bot.run('NDI4Mjk4MTkzMjA2NTA5NTY4.DZxDow.nCAI5cZI1CuzZSIooTwRWpTCeT8')  # todo add Heroku key
+bot.run(os.getenv('TOKEN'))
