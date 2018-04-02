@@ -4,23 +4,30 @@ from trueskill import *
 import trueskill
 import itertools
 import math
-import pickle
 import time
 import datetime
 import csv
 import logging
+import psycopg2
 import os
 
 description = '''A Discord bot by Aristoza that utilizes the TrueSkill Ranking System: 
 https://www.microsoft.com/en-us/research/project/trueskill-ranking-system/ '''
 
 bot = commands.Bot(command_prefix='-', description=description)
-player = pickle.load(open("playerbase.pickle", "rb"))  # users are saved to this pickled dictionary
+
+DATABASE_URL = os.environ['DATABASE_URL']
+conn = psycopg2.connect(DATABASE_URL, sslmode='require')
+cur = conn.cursor()
+
+player = dict()
+cur.execute("SELECT name, mu, sigma FROM players")
+fetch = cur.fetchall()  # fetch all players from the database
+for x in fetch:
+    player[x[0]] = Rating(mu=x[1], sigma=x[2])  # copy from database into dict
+
 env = TrueSkill()
-# session = HTMLSession()
-# r = session.get('https://cadesim.dejong.cc/')
-# r.html.render(keep_page=True)
-# resultsearch = r.html.page.find('.text-center')
+
 
 logging.basicConfig(
     level=logging.INFO,
@@ -40,22 +47,23 @@ def rerate(embed, new, t):
             result = 'gained '
         embed.add_field(name=member.name, value=(result + str(round(diff, 2))) + ' points', inline=False)
         player[member.name] = new_rating
-        pickle_dump()
+        sql_update()
     return
 
 
 def logdata():
     ts = time.time()
     st = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
-    w = csv.writer(open("logs.csv", "a"))
     for k, v in player.items():
-        w.writerow([k, v, st])
+        cur.execute("""INSERT INTO logs (name, mu, sigma, time) VALUES (%s, %s, %s, %s)""", (k, v.mu, v.sigma, st))
+        conn.commit()
 
 
-def pickle_dump():
-    pickling_on = open("playerbase.pickle", "wb")
-    pickle.dump(player, pickling_on)
-    pickling_on.close()
+def sql_update():
+    for k, v in player.items():
+        cur.execute("UPDATE players SET mu = %s, sigma = %s WHERE name = %s", (v.mu, v.sigma, k))
+    conn.commit()
+    return
 
 
 class Commands:
@@ -69,8 +77,10 @@ class Commands:
         if member.name in player:
             await ctx.send('Error: {0} is already a registered member'.format(member))
         else:
-            player[member.name] = Rating()
-            pickle_dump()
+            m = member.name
+            player[m] = Rating()  # gives the new player the default rating
+            cur.execute("""INSERT INTO players (name, mu, sigma) VALUES (%s, %s, %s)""", (m, player[m].mu, player[m].sigma))
+            conn.commit()
             await ctx.send('{0} has been registered'.format(member))
 
     @register.error
@@ -255,7 +265,7 @@ class Commands:
         (new_r1, new_r2) = rate_1vs1(r1, r2)
         player[p1] = new_r1
         player[p2] = new_r2
-        pickle_dump()
+        sql_update()
         gained_r1 = (new_r1.mu - (3 * new_r1.sigma)) - (r1.mu - (3 * r1.sigma))
         await ctx.send(((((p1 + ' won against ') + p2) + ' and gained ') + str(round(gained_r1, 2))) + ' points!')
 
@@ -293,7 +303,8 @@ class Admin:
         msg = await bot.wait_for('message', timeout=30.0)
         if msg.content.casefold() == 'yes':
             player.clear()
-            pickle_dump()
+            cur.execute("DELETE FROM players")
+            conn.commit()
             await ctx.send('Reset successful.')
         elif msg.content.casefold() == 'cancel':
             await ctx.send('Aborted.')
@@ -313,7 +324,7 @@ class Admin:
         if msg.content.casefold() == 'yes':
             for k, v in player.items():
                 player[k] = Rating()
-            pickle_dump()
+            sql_update()
             await ctx.send('Reset successful.')
         elif msg.content.casefold() == 'cancel':
             await ctx.send('Aborted.')
@@ -331,7 +342,7 @@ class Admin:
         for k, v in player.items():
             if k == member.name:
                 player[k] = Rating(mu=newmu, sigma=newsigma)
-                pickle_dump()
+                sql_update()
                 await ctx.send(k + ' has been assigned a new rating of ' + str(expose(player[k])))
                 break
 
@@ -347,7 +358,8 @@ class Admin:
         for k, v in player.items():
             if k == member.name:
                 del player[k]
-                pickle_dump()
+                cur.execute("DELETE FROM players WHERE name=%s", [k])
+                conn.commit()
                 await ctx.send(k + ' has been removed from the player-base')
                 break
 
