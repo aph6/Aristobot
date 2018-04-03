@@ -92,7 +92,7 @@ class Commands:
     async def matchreport(self, ctx):
         """reports the result of a match. It will ask you for the names of the winning team and losing team. You can
         choose any number of players per team (2v2, 2v1, 5v2 etc...) """
-        logdata()
+        #logdata()
 
         def check(n):
             return n.author == ctx.message.author
@@ -245,7 +245,7 @@ class Commands:
     @commands.command()
     async def report1v1(self, ctx, winner: discord.Member, loser: discord.Member):
         """used as a shortcut to report 1v1 matches."""
-        logdata()
+        #logdata()
 
         def check(m):
             return m.author == ctx.message.author
