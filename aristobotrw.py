@@ -67,6 +67,34 @@ def sql_update():
 
 
 class Commands:
+    
+    chk = False
+
+    @commands.command()
+    async def countdown(self, ctx, seconds: int):
+        """counts down from x in seconds with a maximum of 20 seconds"""
+
+        if seconds > 20:
+            await ctx.send('Error: must be 20 seconds or lower')
+            return
+
+        if self.chk is True:
+            await ctx.send('Timer is already running')
+            return
+        else:
+            self.chk = True
+
+        a = await ctx.send('```' +'Server online in ' + str(seconds) + ' seconds' + '```')
+
+        while seconds > 0:
+            time.sleep(1)
+            seconds -= 1
+            print(seconds)
+            await a.edit(content='```' +'Server online in ' + str(seconds) + ' seconds' + '```')
+        await a.edit(content='```diff' + u"\u000A" + '+ Server is online' + u"\u000A" + '```')
+        time.sleep(5)
+        await a.delete()
+        self.chk = False
 
     @commands.command()
     async def register(self, ctx, member: discord.Member = None):  # todo make separate command for registering users
