@@ -47,7 +47,7 @@ def rerate(embed, new, t):
             result = 'gained '
         embed.add_field(name=member.name, value=(result + str(round(diff, 2))) + ' points', inline=False)
         player[member.name] = new_rating
-        sql_update()
+        
     return
 
 
@@ -163,7 +163,7 @@ class Commands:
         embed = discord.Embed(title='Match Result', description='-----------------', color=33023)
         rerate(embed, new1, t1)
         rerate(embed, new2, t2)
-
+        sql_update()
         await ctx.send(embed=embed)
 
     @commands.command(aliases=['lb', 'ldb'])
