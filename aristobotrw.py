@@ -365,7 +365,7 @@ class Admin:
 
     @commands.command()
     @commands.has_permissions(administrator=True)
-    async def setrating(self, ctx, member: discord.Member, newmu: int, newsigma: int):
+    async def setrating(self, ctx, member: discord.Member, newmu: float, newsigma: float):
         """change the rating of a player"""
         for k, v in player.items():
             if k == member.name:
