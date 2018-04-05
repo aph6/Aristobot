@@ -11,6 +11,8 @@ import logging
 import psycopg2
 import os
 
+# Credit to sublee for the trueskill python package https://github.com/sublee/trueskill
+
 description = '''A Discord bot by Aristoza that utilizes the TrueSkill Ranking System: 
 https://www.microsoft.com/en-us/research/project/trueskill-ranking-system/ '''
 
