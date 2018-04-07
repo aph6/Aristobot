@@ -97,6 +97,38 @@ class Commands:
         time.sleep(5)
         await a.delete()
         self.chk = False
+        
+    @commands.command()
+    async def ping(self, ctx):
+        t = await ctx.send('🏓 ...')
+        ms = (t.created_at-ctx.message.created_at).total_seconds() * 1000
+        await t.edit(content='Pong! 🏓 {}ms'.format(int(ms)))
+
+    @commands.command()
+    @commands.has_role('Cade Sim')
+    async def leave(self, ctx):
+        for x in ctx.guild.roles:
+            if x.name == 'Cade Sim':
+                role = x
+        await ctx.author.remove_roles(role, reason='Opted out of Cade Sim')
+        await ctx.author.send('I removed you from the Cade Sim channels 💜')
+
+    @leave.error
+    async def leave_error(self, ctx, error):
+        if isinstance(error, commands.CheckFailure):
+            await ctx.send('You do not have the Cade Sim Role.')
+
+    @commands.command()
+    async def join(self, ctx):
+        for x in ctx.author.roles:
+            if x.name == 'Cade Sim':
+                await  ctx.send('You already have permissions for the Cade Sim channels.')
+                return
+        for x in ctx.guild.roles:
+            if x.name == 'Cade Sim':
+                role = x
+        await ctx.author.add_roles(role, reason='Opted in for Cade Sim')
+        await ctx.author.send('I added you to the Cade Sim channels 💜')
 
     @commands.command()
     async def register(self, ctx, member: discord.Member = None):  # todo make separate command for registering users
