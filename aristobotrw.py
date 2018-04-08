@@ -212,11 +212,36 @@ class Commands:
             position += ' | ' + str(round(expose(v), 2)) + u"\u000A"
             strlist.append(position)
             rank += 1
-        table = '\u200b'.join(strlist)
+        indx = 10
+        table = '\u200b'.join(strlist[indx-10:indx])
         header = ('\u00A0' * 3) + 'User' + ('\u00A0' * 20) + 'Rating' + u"\u000A"
         divider = '_' * 33 + u"\u000A"
 
-        await ctx.send('```' + u"\u000A" + header + divider + table + divider + u"\u000A" '```')
+        msg = await ctx.send('```' + u"\u000A" + header + divider + table + divider + u"\u000A" '```')
+        await msg.add_reaction('⬅')
+        await msg.add_reaction('➡')
+
+        def check(reaction, user):
+            return user != msg.author and str(reaction.emoji == '➡' or '⬅')
+        while True:
+            try:
+                reaction, user = await bot.wait_for('reaction_add', timeout=60.0, check=check)
+                if reaction.emoji == '➡':
+                    await msg.remove_reaction(reaction.emoji, user)
+                    if indx < rank-1:
+                        indx += 10
+                    table = '\u200b'.join(strlist[indx - 10:indx])
+                    await msg.edit(content='```' + u"\u000A" + header + divider + table + divider + u"\u000A" '```')
+                if reaction.emoji == '⬅':
+                    await msg.remove_reaction(reaction.emoji, user)
+                    if indx > 10:
+                        indx -= 10
+                    table = '\u200b'.join(strlist[indx - 10:indx])
+                    await msg.edit(content='```' + u"\u000A" + header + divider + table + divider + u"\u000A" '```')
+            except:
+                await msg.remove_reaction('⬅', msg.author)
+                await msg.remove_reaction('➡', msg.author)
+                break
 
     @commands.command()
     async def compare(self, ctx, member1: discord.Member, member2: discord.Member):
